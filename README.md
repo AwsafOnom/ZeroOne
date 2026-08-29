@@ -2,9 +2,11 @@
 
 A collective recovery platform where eight people with **different** health conditions share a squad and grow a shared artifact — the Onggi — through daily activities.
 
-Most recovery apps optimize for one condition and one user. ZeroOne deliberately mixes conditions in a fixed-size squad: your breathing exercise nudges the same vessel your squadmates see, and the causal link between individual action and collective state is visible in the UI. Healing Chain adds a second loop — every matched user is both mentor and mentee — so support flows in both directions. This repo is a full-stack implementation of that design: auth, onboarding, squad mechanics, journal, assistant, and realtime updates. Several nav items are roadmap stubs with design previews, not finished product.
+Most recovery apps optimize for one condition and one user. ZeroOne deliberately mixes conditions in a fixed-size squad: your breathing exercise nudges the same vessel your squadmates see, and the causal link between individual action and collective state is visible in the UI. Healing Chain adds a second loop — every matched user is both mentor and mentee — so support flows in both directions.
 
-**Live demo:** [zeroone.vercel.app](https://zeroone.vercel.app) — on the login page, click **Explore as demo user** (no signup required).
+I built ZeroOne because I wanted this product to exist — auth, onboarding, squad mechanics, journal, assistant, and realtime updates wired end to end. Several nav items are still roadmap stubs with design previews.
+
+**Live site:** [zeroone.vercel.app](https://zeroone.vercel.app) — on the login page, click **Explore as demo user** (no signup required).
 
 ---
 
@@ -30,7 +32,7 @@ Most recovery apps optimize for one condition and one user. ZeroOne deliberately
 
 ## What is built
 
-**Auth and onboarding** — Firebase email/password login and signup, demo login, multi-step onboarding (role, profile, conditions, wellness, habits), squad assignment with one condition per member enforced server-side.
+**Auth and onboarding** — Firebase email/password login and signup, one-click login via **Explore as demo user**, multi-step onboarding (role, profile, conditions, wellness, habits), squad assignment with one condition per member enforced server-side.
 
 **Dashboard** — daily health summary, squad snapshot, impact feed, links into recovery and support resources.
 
@@ -123,9 +125,9 @@ cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 ```
 
-**API (`apps/api/.env`)** — at minimum: `DATABASE_URL`, `DIRECT_URL`, Firebase Admin credentials (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`). For AI features: `ANTHROPIC_API_KEY` or `GEMINI_API_KEY` plus `AI_PROVIDER`. For demo login: `DEMO_EMAIL` matching a Firebase user.
+**API (`apps/api/.env`)** — at minimum: `DATABASE_URL`, `DIRECT_URL`, Firebase Admin credentials (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`). For AI features: `ANTHROPIC_API_KEY` or `GEMINI_API_KEY` plus `AI_PROVIDER`. For the **Explore as demo user** button: `DEMO_EMAIL` matching a Firebase user.
 
-**Web (`apps/web/.env`)** — `VITE_API_ORIGIN` (default `http://localhost:3001`), Firebase web config (`VITE_FIREBASE_*`), and optionally `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD` for the demo button.
+**Web (`apps/web/.env`)** — `VITE_API_ORIGIN` (default `http://localhost:3001`), Firebase web config (`VITE_FIREBASE_*`), and optionally `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD` for that login button.
 
 Apply schema and seed:
 
@@ -149,13 +151,13 @@ Verify a production build from a clean tree:
 npm run build
 ```
 
-Optional: set `AMBIENT_SQUAD_ACTIVITY=true` in `apps/api/.env` to simulate squad member activity through the real completion pipeline (see existing README note in deployment docs). Deployment to Vercel + Railway + Supabase is documented in [docs/deployment.md](docs/deployment.md).
+Optional: set `AMBIENT_SQUAD_ACTIVITY=true` in `apps/api/.env` to simulate squad member activity through the real completion pipeline. Deployment to Vercel + Railway + Supabase is documented in [docs/deployment.md](docs/deployment.md).
 
 ---
 
-## Portfolio note
+## Squad activity
 
-This is a portfolio project built to demonstrate full-stack product mechanics, not a regulated health product. The demo squad includes **simulated member activity** when `AMBIENT_SQUAD_ACTIVITY` is enabled on the API — those completions are real database writes through the same code path as human claims, not client-side animations.
+On the live deployment, squad activity can include **simulated members** when `AMBIENT_SQUAD_ACTIVITY` is enabled on the API. Those completions are real database writes through the same code path as human claims, not client-side animations.
 
 ---
 
