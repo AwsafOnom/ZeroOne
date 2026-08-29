@@ -10,19 +10,21 @@ Most recovery apps optimize for one condition and one user. ZeroOne deliberately
 
 ## Screenshots
 
-| Dashboard | Recovery activities |
+| Login | Dashboard |
 |---|---|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Recovery activities](docs/screenshots/recovery-activities.png) |
+| ![Login](docs/screenshots/login.png) | ![Dashboard](docs/screenshots/dashboard.png) |
 
-| Onggi Guardian | Healing Chain |
+| Onggi Guardian | Squad details |
 |---|---|
-| ![Onggi Guardian](docs/screenshots/onggi-guardian.png) | ![Healing Chain](docs/screenshots/healing-chain.png) |
+| ![Onggi Guardian](docs/screenshots/onggi-guardian.png) | ![Squad details](docs/screenshots/onggi-squad.png) |
 
-| Healing Journal | AI Assistant |
+| Healing Chain | Healing Journal |
 |---|---|
-| ![Healing Journal](docs/screenshots/healing-journal.png) | ![AI Assistant](docs/screenshots/ai-assistant.png) |
+| ![Healing Chain](docs/screenshots/healing-chain.png) | ![Healing Journal](docs/screenshots/healing-journal.png) |
 
-Add PNG files to `docs/screenshots/` using the filenames above.
+| AI Assistant |
+|---|
+| ![AI Assistant](docs/screenshots/ai-assistant.png) |
 
 ---
 
