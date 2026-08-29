@@ -55,6 +55,15 @@ export function personConditionLabel(person: ApiHealingChainPerson | null | unde
   return condition ? `Living with ${condition}` : null;
 }
 
+export function personSubtitle(person: ApiHealingChainPerson | null | undefined): string | null {
+  const condition = personConditionLabel(person);
+  const tenure = formatJourneyTenure(person?.journeyStartDate ?? null);
+  if (condition && tenure) {
+    return `${condition} · ${tenure}`;
+  }
+  return condition ?? tenure;
+}
+
 export function connectionRoleLabel(role: "mentor" | "mentee"): string {
   return role === "mentor" ? "Your mentor" : "Your mentee";
 }
