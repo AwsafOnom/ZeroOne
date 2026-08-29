@@ -1,0 +1,6 @@
+/*
+ * Shared entrypoint for the approved token layer.
+ * The source token file remains at src/styles/tokens.css until the existing
+ * workspace is migrated; consumers import this package path only.
+ */
+@import "../../../../src/styles/tokens.css";

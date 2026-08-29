@@ -1,0 +1,928 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  INDIVIDUAL
+  PROFESSIONAL
+}
+
+enum ConditionCategory {
+  PHYSICAL
+  MENTAL
+  NEUROLOGICAL
+}
+
+enum HabitType {
+  SMOKING
+  ALCOHOL
+  DRUG_USE
+}
+
+enum HabitFrequency {
+  NEVER
+  OCCASIONALLY
+  REGULARLY
+}
+
+enum AssessmentStatus {
+  DRAFT
+  COMPLETED
+}
+
+enum SquadMembershipStatus {
+  INVITED
+  ACTIVE
+  PAUSED
+  LEFT
+  REMOVED
+}
+
+enum RecoveryCycleState {
+  ACTIVE
+  CRYSTALLIZED
+}
+
+enum ActivityCategory {
+  PHYSICAL
+  COGNITIVE
+  EMOTIONAL
+  SOCIAL
+}
+
+enum ActivityScope {
+  INDIVIDUAL
+  SHARED_SOCIAL
+}
+
+enum SocialBrainGameKind {
+  WORD_PUZZLES
+  MEMORY_SEQUENCES
+  REACTION_TIME
+  OBJECT_TRACKING
+}
+
+enum SocialBrainGameStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ActivityClaimStatus {
+  CLAIMED
+  COMPLETED
+  ABANDONED
+}
+
+enum ChallengeKind {
+  COOKING
+  SLEEP_NIGHT
+  SUNLIGHT_SESSION
+  RECOVERY_ROOM
+}
+
+enum MentorshipStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum MentorshipSessionStatus {
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum SparkKind {
+  ENCOURAGEMENT
+  VOICE_SUPPORT
+  GUIDANCE
+}
+
+enum OnggiName {
+  NEW_BEGINNING
+  STRENGTH
+  GROWTH
+  WISDOM
+}
+
+enum MetricType {
+  BREATHING_EXERCISE
+  BREATHING_VEINS
+  WARMTH
+  CIRCULATION
+  HARMONY
+}
+
+enum MoodTag {
+  SAD
+  ANXIOUS
+  FRUSTRATED
+  LONELY
+  EXHAUSTED
+  HOPEFUL
+  OTHER
+}
+
+enum ReflectionEmotionalTag {
+  MISSED_EVENT
+  PAIN_FLARE
+  SOCIAL_ISOLATION
+  IDENTITY_LOSS
+  FATIGUE
+  RELATIONSHIP_STRUGGLE
+  ABANDONED_HOBBIES
+  OTHERS
+}
+
+enum MilestoneStage {
+  BEFORE_DIAGNOSIS
+  DIAGNOSIS
+  STRUGGLES
+  TURNING_POINT
+  IMPROVEMENT
+  MAINTAINING
+}
+
+enum EventMode {
+  ONLINE
+  OFFLINE
+}
+
+enum ReactionType {
+  SUPPORT
+  LOVE
+  CELEBRATE
+  INSIGHTFUL
+}
+
+model PlatformConfig {
+  id                      String   @id @default("default")
+  maxSquadMembers         Int      @map("max_squad_members")
+  recoveryCycleDays       Int      @map("recovery_cycle_days")
+  activityFreezeHours     Int      @map("activity_freeze_hours")
+  dailyDoubleActivities   Int      @map("daily_double_activities")
+  dailyActivityGridSize   Int      @map("daily_activity_grid_size")
+  encouragementPoints     Int      @map("encouragement_points")
+  voiceSupportPoints      Int      @map("voice_support_points")
+  guidancePoints          Int      @map("guidance_points")
+  sparkLanternThreshold   Int      @map("spark_lantern_threshold")
+  onggiDimensions         Int      @map("onggi_dimensions")
+  peerStoriesPerReflection Int     @map("peer_stories_per_reflection")
+  aiFeedbackResponses     Int      @map("ai_feedback_responses")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_configs")
+}
+
+model User {
+  id                 String           @id @default(cuid())
+  firebaseUid        String           @unique @map("firebase_uid")
+  name               String?
+  email              String?          @unique
+  role               Role?
+  avatarUrl          String?          @map("avatar_url")
+  gender             String?
+  dateOfBirth        DateTime?        @db.Date @map("date_of_birth")
+  heightCm           Decimal?         @db.Decimal(5, 2) @map("height_cm")
+  weightKg           Decimal?         @db.Decimal(5, 2) @map("weight_kg")
+  journeyStartDate   DateTime?        @db.Date @map("journey_start_date")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  conditions         UserCondition[]
+  lifestyleHabits    LifestyleHabit[]
+  wellnessAssessments WellnessAssessment[]
+  dailyHealthSummaries DailyHealthSummary[]
+  squadMemberships   SquadMembership[] @relation("UserSquadMemberships")
+  activityClaims     ActivityClaim[]
+  activityFreezes    ActivityFreeze[]
+  challengeParticipants SquadChallengeParticipant[]
+  socialBrainGameParticipants SocialBrainGameParticipant[]
+  mentorshipsAsMentor MentorshipLink[] @relation("MentorLinks")
+  mentorshipsAsMentee MentorshipLink[] @relation("MenteeLinks")
+  healingChainProfile HealingChainProfile?
+  chainMessagesSent ChainMessage[]
+  sparksSent         Spark[]          @relation("SparksSent")
+  sparksReceived     Spark[]          @relation("SparksReceived")
+  lanterns           Lantern[]
+  reflections       Reflection[]
+  milestones        JourneyMilestone[]
+  impactEvents      ImpactEvent[]
+  notificationReads NotificationRead[]
+  timeCapsuleContributions TimeCapsuleContribution[]
+  posts              Post[]
+  comments           Comment[]
+  reactions          Reaction[]
+  hostedEvents       Event[]
+  eventAttendance    EventAttendee[]
+  publishedStories   SharedStory[]    @relation("StoryAuthors")
+
+  @@index([role])
+  @@index([journeyStartDate])
+  @@map("users")
+}
+
+model HealthCondition {
+  id          String            @id @default(cuid())
+  name        String            @unique
+  slug        String            @unique
+  category    ConditionCategory
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  users       UserCondition[]
+  squads      SquadMembership[]
+  communities Community[]
+  mentorships MentorshipLink[]
+  supportMessages AnonymousSupportMessage[]
+
+  @@index([category])
+  @@map("health_conditions")
+}
+
+model UserCondition {
+  userId       String          @map("user_id")
+  conditionId  String          @map("condition_id")
+  diagnosedAt  DateTime?       @db.Date @map("diagnosed_at")
+  isPrimary    Boolean         @default(false) @map("is_primary")
+  createdAt    DateTime        @default(now()) @map("created_at")
+
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  condition    HealthCondition @relation(fields: [conditionId], references: [id], onDelete: Restrict)
+  memberships  SquadMembership[] @relation("MembershipUserCondition")
+
+  @@id([userId, conditionId])
+  @@index([conditionId])
+  @@map("user_conditions")
+}
+
+model LifestyleHabit {
+  id          String         @id @default(cuid())
+  userId      String         @map("user_id")
+  type        HabitType
+  frequency   HabitFrequency
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId, type])
+  @@map("lifestyle_habits")
+}
+
+model WellnessAssessment {
+  id           String           @id @default(cuid())
+  userId       String           @map("user_id")
+  status       AssessmentStatus @default(DRAFT)
+  responses    Json
+  completedAt  DateTime?        @map("completed_at")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("wellness_assessments")
+}
+
+model DailyHealthSummary {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  summaryDate     DateTime @db.Date @map("summary_date")
+  sleepMinutes    Int?     @map("sleep_minutes")
+  sleepGoalMinutes Int?    @map("sleep_goal_minutes")
+  waterGlasses    Int?     @map("water_glasses")
+  waterGoalGlasses Int?    @map("water_goal_glasses")
+  caloriesConsumed Int?    @map("calories_consumed")
+  calorieGoal     Int?     @map("calorie_goal")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, summaryDate])
+  @@index([userId, summaryDate])
+  @@map("daily_health_summaries")
+}
+
+model Squad {
+  id             String             @id @default(cuid())
+  name           String
+  maxMembers     Int                @db.SmallInt @map("max_members")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  memberships    SquadMembership[]
+  recoveryCycles RecoveryCycle[]
+  leftMatchups   SquadMatchup[]     @relation("MatchupLeftSquad")
+  rightMatchups  SquadMatchup[]     @relation("MatchupRightSquad")
+  challenges     SquadChallenge[]
+  socialBrainGames SocialBrainGame[]
+  impactEvents   ImpactEvent[]
+
+  @@index([name])
+  @@map("squads")
+}
+
+model SquadMembership {
+  id           String                @id @default(cuid())
+  userId       String                @map("user_id")
+  squadId      String                @map("squad_id")
+  conditionId  String                @map("condition_id")
+  status       SquadMembershipStatus @default(INVITED)
+  joinedAt     DateTime?             @map("joined_at")
+  leftAt       DateTime?             @map("left_at")
+  createdAt    DateTime              @default(now()) @map("created_at")
+  updatedAt    DateTime              @updatedAt @map("updated_at")
+
+  user         User                  @relation("UserSquadMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  squad        Squad                 @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  condition    HealthCondition       @relation(fields: [conditionId], references: [id], onDelete: Restrict)
+  userCondition UserCondition        @relation("MembershipUserCondition", fields: [userId, conditionId], references: [userId, conditionId], onDelete: Cascade)
+
+  @@unique([squadId, userId])
+  @@unique([squadId, conditionId])
+  @@index([squadId, status])
+  @@index([userId, status])
+  @@map("squad_memberships")
+}
+
+model RecoveryCycle {
+  id            String             @id @default(cuid())
+  squadId       String             @map("squad_id")
+  cycleDays     Int                @map("cycle_days")
+  cycleDay      Int                @default(1) @map("cycle_day")
+  startDate     DateTime           @db.Date @map("start_date")
+  endDate       DateTime           @db.Date @map("end_date")
+  state         RecoveryCycleState @default(ACTIVE)
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  squad         Squad              @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  onggiState    OnggiState?
+  onggi         Onggi?
+  matchups      SquadMatchup[]
+  lanterns      Lantern[]
+  activityClaims ActivityClaim[]
+  impactEvents  ImpactEvent[]
+  socialBrainGames SocialBrainGame[]
+  timeCapsuleContributions TimeCapsuleContribution[]
+
+  @@index([squadId, state])
+  @@index([squadId, startDate])
+  @@map("recovery_cycles")
+}
+
+model OnggiState {
+  id              String         @id @default(cuid())
+  cycleId         String         @unique @map("cycle_id")
+  breathingExercise Int          @map("breathing_exercise")
+  breathingVeins   Int           @map("breathing_veins")
+  warmth          Int
+  circulation     Int
+  harmony         Int
+  // Accumulated squad competition total; intentionally unbounded.
+  resonanceScore  Decimal        @db.Decimal @map("resonance_score")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  cycle           RecoveryCycle  @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+
+  @@map("onggi_states")
+}
+
+model Onggi {
+  // Product rule: crystallized Onggi is an immutable achievement artifact.
+  // It can only be collected; no application delete path is permitted.
+  id                  String        @id @default(cuid())
+  cycleId             String        @unique @map("cycle_id")
+  name                OnggiName
+  theme               String
+  description         String
+  dateRangeStart     DateTime      @db.Date @map("date_range_start")
+  dateRangeEnd       DateTime      @db.Date @map("date_range_end")
+  activityCount      Int           @default(0) @map("activity_count")
+  finalResonanceScore Decimal       @db.Decimal @map("final_resonance_score")
+  createdAt           DateTime      @default(now()) @map("created_at")
+
+  cycle               RecoveryCycle @relation(fields: [cycleId], references: [id], onDelete: Restrict)
+  timeCapsuleContributions TimeCapsuleContribution[]
+
+  @@index([name])
+  @@map("onggis")
+}
+
+model SquadMatchup {
+  id           String         @id @default(cuid())
+  cycleId      String         @map("cycle_id")
+  leftSquadId  String         @map("left_squad_id")
+  rightSquadId String         @map("right_squad_id")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  cycle        RecoveryCycle  @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  leftSquad    Squad          @relation("MatchupLeftSquad", fields: [leftSquadId], references: [id], onDelete: Cascade)
+  rightSquad   Squad          @relation("MatchupRightSquad", fields: [rightSquadId], references: [id], onDelete: Cascade)
+
+  @@unique([cycleId, leftSquadId, rightSquadId])
+  @@index([cycleId])
+  @@map("squad_matchups")
+}
+
+model Activity {
+  id             String             @id @default(cuid())
+  title          String
+  description    String
+  points         Int
+  category       ActivityCategory
+  scope          ActivityScope
+  isActive       Boolean            @default(true) @map("is_active")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  claims         ActivityClaim[]
+  freezes        ActivityFreeze[]
+
+  @@index([category, scope, isActive])
+  @@map("activities")
+}
+
+model SocialBrainGame {
+  id           String                @id @default(cuid())
+  squadId      String                @map("squad_id")
+  cycleId      String                @map("cycle_id")
+  kind         SocialBrainGameKind
+  status       SocialBrainGameStatus @default(SCHEDULED)
+  title        String
+  description  String
+  points       Int
+  startsAt     DateTime              @map("starts_at")
+  endsAt       DateTime?             @map("ends_at")
+  createdAt    DateTime              @default(now()) @map("created_at")
+  updatedAt    DateTime              @updatedAt @map("updated_at")
+
+  squad        Squad                 @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  cycle        RecoveryCycle         @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  participants SocialBrainGameParticipant[]
+
+  @@index([squadId, status, startsAt])
+  @@index([cycleId, startsAt])
+  @@map("social_brain_games")
+}
+
+model SocialBrainGameParticipant {
+  gameId       String          @map("game_id")
+  userId       String          @map("user_id")
+  score        Int             @default(0)
+  joinedAt     DateTime        @default(now()) @map("joined_at")
+  completedAt  DateTime?       @map("completed_at")
+
+  game         SocialBrainGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([gameId, userId])
+  @@index([userId, joinedAt])
+  @@map("social_brain_game_participants")
+}
+
+model ActivityClaim {
+  id            String              @id @default(cuid())
+  userId        String              @map("user_id")
+  activityId    String              @map("activity_id")
+  cycleId       String?             @map("cycle_id")
+  claimDate     DateTime            @db.Date @map("claim_date")
+  claimedAt     DateTime            @default(now()) @map("claimed_at")
+  completedAt   DateTime?           @map("completed_at")
+  status        ActivityClaimStatus @default(CLAIMED)
+
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activity      Activity            @relation(fields: [activityId], references: [id], onDelete: Restrict)
+  cycle         RecoveryCycle?     @relation(fields: [cycleId], references: [id], onDelete: SetNull)
+  impactEvents  ImpactEvent[]
+
+  @@index([userId, claimDate])
+  @@index([userId, claimedAt])
+  @@index([activityId, claimDate])
+  @@index([cycleId, claimedAt])
+  @@map("activity_claims")
+}
+
+model ActivityFreeze {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  activityId  String    @map("activity_id")
+  startedAt   DateTime  @default(now()) @map("started_at")
+  expiresAt   DateTime  @map("expires_at")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activity    Activity  @relation(fields: [activityId], references: [id], onDelete: Restrict)
+
+  @@index([userId, activityId, expiresAt])
+  @@index([expiresAt])
+  @@map("activity_freezes")
+}
+
+model SquadChallenge {
+  id                String                    @id @default(cuid())
+  squadId           String                    @map("squad_id")
+  kind              ChallengeKind
+  title             String
+  description       String
+  points            Int
+  participantCount  Int                       @default(0) @map("participant_count")
+  deadline          DateTime
+  createdAt         DateTime                  @default(now()) @map("created_at")
+
+  squad             Squad                     @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  participants      SquadChallengeParticipant[]
+
+  @@index([squadId, deadline])
+  @@index([deadline])
+  @@map("squad_challenges")
+}
+
+model SquadChallengeParticipant {
+  challengeId String          @map("challenge_id")
+  userId      String          @map("user_id")
+  joinedAt    DateTime        @default(now()) @map("joined_at")
+
+  challenge   SquadChallenge  @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([challengeId, userId])
+  @@index([userId, joinedAt])
+  @@map("squad_challenge_participants")
+}
+
+model NotificationRead {
+  userId          String   @map("user_id")
+  notificationKey String   @map("notification_key")
+  readAt          DateTime @default(now()) @map("read_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, notificationKey])
+  @@map("notification_reads")
+}
+
+model ImpactEvent {
+  id               String          @id @default(cuid())
+  squadId          String          @map("squad_id")
+  cycleId          String?         @map("cycle_id")
+  actorUserId      String?         @map("actor_user_id")
+  activityClaimId  String?         @map("activity_claim_id")
+  activityCategory ActivityCategory @map("activity_category")
+  metric           MetricType
+  delta            Decimal         @db.Decimal(5, 2)
+  message          String
+  occurredAt       DateTime        @default(now()) @map("occurred_at")
+
+  squad            Squad           @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  cycle            RecoveryCycle?  @relation(fields: [cycleId], references: [id], onDelete: SetNull)
+  actor            User?           @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  activityClaim    ActivityClaim?  @relation(fields: [activityClaimId], references: [id], onDelete: SetNull)
+
+  @@index([squadId, occurredAt])
+  @@index([cycleId, occurredAt])
+  @@index([actorUserId, occurredAt])
+  @@map("impact_events")
+}
+
+enum TimeCapsuleContributionType {
+  PHOTO
+  VOICE_RECORDING
+  SONG
+  MEMORY
+}
+
+model TimeCapsuleContribution {
+  id          String                       @id @default(cuid())
+  cycleId     String                       @map("cycle_id")
+  onggiId     String?                      @map("onggi_id")
+  userId      String                       @map("user_id")
+  type        TimeCapsuleContributionType
+  storageKey  String                       @map("storage_key")
+  caption     String?
+  createdAt   DateTime                     @default(now()) @map("created_at")
+
+  cycle       RecoveryCycle                @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  onggi       Onggi?                       @relation(fields: [onggiId], references: [id], onDelete: Restrict)
+  user        User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([cycleId, createdAt])
+  @@index([onggiId, createdAt])
+  @@index([userId, createdAt])
+  @@map("time_capsule_contributions")
+}
+
+model MentorshipLink {
+  id           String             @id @default(cuid())
+  mentorId     String             @map("mentor_id")
+  menteeId     String             @map("mentee_id")
+  conditionId  String             @map("condition_id")
+  status       MentorshipStatus   @default(PENDING)
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  mentor       User               @relation("MentorLinks", fields: [mentorId], references: [id], onDelete: Cascade)
+  mentee       User               @relation("MenteeLinks", fields: [menteeId], references: [id], onDelete: Cascade)
+  condition    HealthCondition    @relation(fields: [conditionId], references: [id], onDelete: Restrict)
+  sparks       Spark[]
+  sessions     MentorshipSession[]
+  messages     ChainMessage[]
+
+  @@unique([mentorId, menteeId, conditionId])
+  @@index([mentorId, status])
+  @@index([menteeId, status])
+  @@index([conditionId, status])
+  @@map("mentorship_links")
+}
+
+model HealingChainProfile {
+  id                           String   @id @default(cuid())
+  userId                       String   @unique @map("user_id")
+  bio                          String?
+  specialization              String?
+  isAvailable                 Boolean  @default(false) @map("is_available")
+  preferredCommunicationStyle String?  @map("preferred_communication_style")
+  createdAt                    DateTime @default(now()) @map("created_at")
+  updatedAt                    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([isAvailable])
+  @@map("healing_chain_profiles")
+}
+
+model MentorshipSession {
+  id                String                   @id @default(cuid())
+  mentorshipLinkId  String                   @map("mentorship_link_id")
+  startsAt          DateTime                 @map("starts_at")
+  status            MentorshipSessionStatus  @default(CONFIRMED)
+  createdAt         DateTime                 @default(now()) @map("created_at")
+  updatedAt         DateTime                 @updatedAt @map("updated_at")
+
+  mentorshipLink MentorshipLink @relation(fields: [mentorshipLinkId], references: [id], onDelete: Cascade)
+
+  @@index([mentorshipLinkId, status, startsAt])
+  @@index([startsAt, status])
+  @@map("mentorship_sessions")
+}
+
+model ChainMessage {
+  id               String         @id @default(cuid())
+  mentorshipLinkId String         @map("mentorship_link_id")
+  senderId         String         @map("sender_id")
+  ciphertext       String
+  sentAt           DateTime       @default(now()) @map("sent_at")
+
+  mentorshipLink MentorshipLink @relation(fields: [mentorshipLinkId], references: [id], onDelete: Cascade)
+  sender         User           @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([mentorshipLinkId, sentAt])
+  @@index([senderId, sentAt])
+  @@map("chain_messages")
+}
+
+model SparkActionConfig {
+  id           String    @id @default(cuid())
+  kind         SparkKind  @unique
+  points       Int
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  sparks       Spark[]
+
+  @@map("spark_action_configs")
+}
+
+model Spark {
+  id             String            @id @default(cuid())
+  actionId       String            @map("action_id")
+  senderId       String            @map("sender_id")
+  recipientId    String            @map("recipient_id")
+  mentorshipLinkId String?         @map("mentorship_link_id")
+  points         Int
+  createdAt      DateTime          @default(now()) @map("created_at")
+
+  action         SparkActionConfig @relation(fields: [actionId], references: [id], onDelete: Restrict)
+  sender         User              @relation("SparksSent", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient      User              @relation("SparksReceived", fields: [recipientId], references: [id], onDelete: Cascade)
+  mentorshipLink MentorshipLink?   @relation(fields: [mentorshipLinkId], references: [id], onDelete: SetNull)
+
+  @@index([recipientId, createdAt])
+  @@index([senderId, createdAt])
+  @@index([mentorshipLinkId, createdAt])
+  @@map("sparks")
+}
+
+model Lantern {
+  id                    String         @id @default(cuid())
+  userId                String         @map("user_id")
+  cycleId               String         @map("cycle_id")
+  emotionalGrowth       Decimal        @db.Decimal(5, 2) @map("emotional_growth")
+  supportGiven          Int            @map("support_given")
+  consistencyPercent    Decimal        @db.Decimal(5, 2) @map("consistency_percent")
+  compassionActsPercent Decimal        @db.Decimal(5, 2) @map("compassion_acts_percent")
+  createdAt             DateTime       @default(now()) @map("created_at")
+
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cycle                 RecoveryCycle  @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cycleId])
+  @@index([userId, createdAt])
+  @@map("lanterns")
+}
+
+model Reflection {
+  id             String                    @id @default(cuid())
+  userId         String                    @map("user_id")
+  bodyText       String                    @map("body_text")
+  moodTags       MoodTag[]                  @map("mood_tags")
+  emotionalTags  ReflectionEmotionalTag[]   @map("emotional_tags")
+  isPrivate      Boolean                   @default(true) @map("is_private")
+  createdAt      DateTime                  @default(now()) @map("created_at")
+  updatedAt      DateTime                  @updatedAt @map("updated_at")
+
+  user           User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aiFeedback     AiFeedback[]
+  sharedStory    SharedStory?
+
+  @@index([userId, createdAt])
+  @@index([userId, isPrivate, createdAt])
+  @@map("reflections")
+}
+
+model AiFeedback {
+  id             String      @id @default(cuid())
+  reflectionId   String      @map("reflection_id")
+  model          String
+  responseText   String      @map("response_text")
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  reflection     Reflection  @relation(fields: [reflectionId], references: [id], onDelete: Cascade)
+
+  @@index([reflectionId, createdAt])
+  @@map("ai_feedback")
+}
+
+model SharedStory {
+  id                 String           @id @default(cuid())
+  sourceReflectionId String?          @unique @map("source_reflection_id")
+  authorUserId       String?          @map("author_user_id")
+  emotionalTags      ReflectionEmotionalTag[] @map("emotional_tags")
+  anonymizedBody     String           @map("anonymized_body")
+  isPublished        Boolean          @default(false) @map("is_published")
+  createdAt          DateTime         @default(now()) @map("created_at")
+
+  sourceReflection   Reflection?      @relation(fields: [sourceReflectionId], references: [id], onDelete: SetNull)
+  author             User?            @relation("StoryAuthors", fields: [authorUserId], references: [id], onDelete: SetNull)
+
+  @@index([isPublished, createdAt])
+  @@map("shared_stories")
+}
+
+model JourneyMilestone {
+  id          String         @id @default(cuid())
+  userId      String         @map("user_id")
+  stage       MilestoneStage
+  occurredAt  DateTime       @map("occurred_at")
+  notes       String?
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stage])
+  @@index([userId, occurredAt])
+  @@map("journey_milestones")
+}
+
+model Community {
+  id              String           @id @default(cuid())
+  conditionId     String           @unique @map("condition_id")
+  memberCount     Int              @default(0) @map("member_count")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  condition       HealthCondition  @relation(fields: [conditionId], references: [id], onDelete: Restrict)
+  posts           Post[]
+  comments        Comment[]
+  events          Event[]
+  supportMessages AnonymousSupportMessage[]
+
+  @@map("communities")
+}
+
+model Post {
+  id           String       @id @default(cuid())
+  communityId  String       @map("community_id")
+  authorUserId String?      @map("author_user_id")
+  bodyText     String       @map("body_text")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  community    Community    @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  author       User?        @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  comments     Comment[]
+  reactions    Reaction[]
+
+  @@index([communityId, createdAt])
+  @@index([authorUserId, createdAt])
+  @@map("posts")
+}
+
+model Comment {
+  id           String       @id @default(cuid())
+  postId       String       @map("post_id")
+  communityId  String       @map("community_id")
+  authorUserId String?      @map("author_user_id")
+  bodyText     String       @map("body_text")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  post         Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  community    Community    @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  author       User?        @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  reactions    Reaction[]
+
+  @@index([postId, createdAt])
+  @@index([communityId, createdAt])
+  @@map("comments")
+}
+
+model Reaction {
+  id           String       @id @default(cuid())
+  userId       String       @map("user_id")
+  postId       String?      @map("post_id")
+  commentId    String?      @map("comment_id")
+  type         ReactionType
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post         Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment      Comment?     @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId, type])
+  @@unique([userId, commentId, type])
+  @@index([postId, type])
+  @@index([commentId, type])
+  @@map("reactions")
+}
+
+model Event {
+  id           String       @id @default(cuid())
+  communityId  String       @map("community_id")
+  hostUserId   String       @map("host_user_id")
+  title        String
+  description  String
+  startsAt     DateTime     @map("starts_at")
+  mode         EventMode
+  attendeeCount Int         @default(0) @map("attendee_count")
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  community    Community    @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  host         User         @relation(fields: [hostUserId], references: [id], onDelete: Restrict)
+  attendees    EventAttendee[]
+
+  @@index([communityId, startsAt])
+  @@index([hostUserId, startsAt])
+  @@index([startsAt, mode])
+  @@map("events")
+}
+
+model EventAttendee {
+  eventId      String       @map("event_id")
+  userId       String       @map("user_id")
+  joinedAt     DateTime     @default(now()) @map("joined_at")
+
+  event        Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
+  @@index([userId, joinedAt])
+  @@map("event_attendees")
+}
+
+model AnonymousSupportMessage {
+  id                    String          @id @default(cuid())
+  communityId           String          @map("community_id")
+  recipientConditionId  String          @map("recipient_condition_id")
+  bodyText              String          @map("body_text")
+  createdAt             DateTime        @default(now()) @map("created_at")
+
+  community             Community       @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  recipientCondition    HealthCondition @relation(fields: [recipientConditionId], references: [id], onDelete: Restrict)
+
+  @@index([communityId, createdAt])
+  @@index([recipientConditionId, createdAt])
+  @@map("anonymous_support_messages")
+}

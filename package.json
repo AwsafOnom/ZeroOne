@@ -1,0 +1,16 @@
+{
+  "name": "zeroone",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "postinstall": "npm run prisma:generate --workspace apps/api",
+    "build": "npm run build --workspaces",
+    "dev:api": "npm run dev --workspace apps/api",
+    "dev:web": "npm run dev --workspace apps/web",
+    "typecheck": "npm run typecheck --workspaces"
+  }
+}
