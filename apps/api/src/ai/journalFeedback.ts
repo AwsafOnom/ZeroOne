@@ -1,4 +1,4 @@
-import type { MoodTag, ReflectionEmotionalTag } from "../generated/prisma/client.js";
+import type { MoodTag, ReflectionEmotionalTag } from "../prisma.js";
 import { createChatCompletion, isAiConfigured } from "./client.js";
 import { detectCrisisLanguage, formatCrisisSupportResponse } from "./crisis.js";
 import { journalFeedbackFewShots, journalFeedbackSystemPrompt } from "./journalPrompt.js";

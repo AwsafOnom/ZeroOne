@@ -1,6 +1,7 @@
 import "dotenv/config";
 import type { Server as HttpServer } from "node:http";
 import { Server, type Socket } from "socket.io";
+import { getAllowedOrigins } from "../config/corsOrigins.js";
 import { getPrisma } from "../db.js";
 import { verifyFirebaseIdToken } from "../auth/firebase.js";
 import { buildSquadHealth } from "../services/squadInsights.js";
@@ -26,7 +27,8 @@ async function resolveSquadIdForUser(firebaseUid: string): Promise<string | null
 export function attachRealtime(httpServer: HttpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: process.env.WEB_ORIGIN ?? "http://localhost:5173",
+      origin: getAllowedOrigins(),
+      credentials: true,
     },
   });
 

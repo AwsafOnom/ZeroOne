@@ -1,5 +1,5 @@
 import { ZEROONE_CONFIG } from "@zeroone/shared";
-import type { MilestoneStage, ReflectionEmotionalTag } from "../generated/prisma/client.js";
+import type { MilestoneStage, ReflectionEmotionalTag } from "../prisma.js";
 import { getPrisma } from "../db.js";
 
 const journeyStageOrder: MilestoneStage[] = [

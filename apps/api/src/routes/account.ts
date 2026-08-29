@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { ZEROONE_CONFIG } from "@zeroone/shared";
-import type { Prisma } from "../generated/prisma/client.js";
+import type { Prisma } from "../prisma.js";
 import { getPrisma } from "../db.js";
 import { asyncHandler, badRequest, parse } from "../http.js";
 import { requireAuth, currentUser } from "../auth/middleware.js";

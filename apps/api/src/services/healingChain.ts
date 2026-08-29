@@ -1,5 +1,5 @@
 import { ZEROONE_CONFIG } from "@zeroone/shared";
-import type { SparkKind } from "../generated/prisma/client.js";
+import type { SparkKind } from "../prisma.js";
 import { getPrisma } from "../db.js";
 import { getJourneyTimeline } from "./journal.js";
 

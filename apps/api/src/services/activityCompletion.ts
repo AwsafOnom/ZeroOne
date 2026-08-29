@@ -1,4 +1,4 @@
-import type { Prisma } from "../generated/prisma/client.js";
+import type { Prisma } from "../prisma.js";
 import { getPrisma } from "../db.js";
 import { emitSquadRealtime } from "../realtime/socket.js";
 import { groupImpactEvents } from "@zeroone/shared";

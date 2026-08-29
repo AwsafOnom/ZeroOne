@@ -8,5 +8,5 @@ coverage/
 *.log
 prisma/dev.db
 prisma/dev.db-journal
-apps/api/src/generated/prisma/
-apps/api/generated/prisma/
+apps/api/src/generated/
+apps/api/generated/
