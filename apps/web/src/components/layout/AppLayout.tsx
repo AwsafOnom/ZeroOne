@@ -1,8 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { LogoutModal } from "../auth/LogoutModal";
 import { AssistantPanel } from "../assistant";
 import { NotificationsDropdown } from "../notifications";
 import { useAssistant } from "../../context/AssistantContext";
+import { useLogout } from "../../hooks/useLogout";
 import { cx } from "../primitives";
 import { Sidebar } from "./Sidebar";
 import { TopBar, type TopBarProps } from "./TopBar";
@@ -28,19 +30,33 @@ export function AppLayout({
 }: AppLayoutProps) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [logoutPending, setLogoutPending] = useState(false);
   const location = useLocation();
   const { openAssistant } = useAssistant();
+  const logout = useLogout();
 
   useEffect(() => {
     setMobileSidebarOpen(false);
     setNotificationsOpen(false);
   }, [location.pathname]);
 
+  async function handleLogoutConfirm() {
+    setLogoutPending(true);
+    try {
+      await logout();
+      setLogoutModalOpen(false);
+    } catch {
+      setLogoutPending(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-surface-app">
       <Sidebar
         collapsed={sidebarCollapsed}
         mobileOpen={mobileSidebarOpen}
+        onLogoutClick={() => setLogoutModalOpen(true)}
         onMobileClose={() => setMobileSidebarOpen(false)}
       />
       <div
@@ -69,6 +85,12 @@ export function AppLayout({
         </main>
       </div>
       <AssistantPanel />
+      <LogoutModal
+        isLoading={logoutPending}
+        onClose={() => setLogoutModalOpen(false)}
+        onConfirm={() => void handleLogoutConfirm()}
+        open={logoutModalOpen}
+      />
     </div>
   );
 }

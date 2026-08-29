@@ -29,6 +29,19 @@ export interface ApiUser {
   conditions?: ApiUserCondition[];
 }
 
+export interface ApiAccountInfo {
+  email: string | null;
+  journeyStartDate: string | null;
+  signInMethod: string;
+  squad: {
+    id: string;
+    name: string;
+    conditionId: string;
+    conditionName: string;
+  } | null;
+  primaryConditionLocked: boolean;
+}
+
 export type OnboardingStep =
   | "role"
   | "profile"

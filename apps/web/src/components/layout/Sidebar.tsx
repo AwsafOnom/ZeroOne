@@ -80,6 +80,7 @@ export interface SidebarProps {
   collapsed?: boolean;
   mobileOpen?: boolean;
   onMobileClose?: () => void;
+  onLogoutClick?: () => void;
   closeLabel?: string;
   logoLabel?: string;
   className?: string;
@@ -92,6 +93,7 @@ export function Sidebar({
   items = defaultSidebarItems,
   logoLabel = "Go to dashboard",
   mobileOpen = false,
+  onLogoutClick,
   onMobileClose,
 }: SidebarProps) {
   return (
@@ -176,21 +178,21 @@ export function Sidebar({
             ))}
           </div>
 
-          <NavLink
-            className={({ isActive }) =>
-              cx(
-                "mt-auto flex min-h-[var(--space-60)] items-center rounded-sm px-[var(--space-card-padding)] py-[var(--space-component-md)] font-body text-body-lg text-surface-default transition-colors hover:bg-[var(--color-sidebar-hover)] focus-visible:outline-none focus-visible:ring-[var(--border-width)] focus-visible:ring-surface-default",
-                collapsed ? "justify-center" : "gap-[var(--space-nav-icon-text)]",
-                isActive && "bg-surface-raised font-weight-button text-primary",
-              )
-            }
-            onClick={onMobileClose}
+          <button
+            className={cx(
+              "mt-auto flex min-h-[var(--space-60)] w-full items-center rounded-sm px-[var(--space-card-padding)] py-[var(--space-component-md)] font-body text-body-lg text-surface-default transition-colors hover:bg-[var(--color-sidebar-hover)] focus-visible:outline-none focus-visible:ring-[var(--border-width)] focus-visible:ring-surface-default",
+              collapsed ? "justify-center" : "gap-[var(--space-nav-icon-text)]",
+            )}
+            onClick={() => {
+              onMobileClose?.();
+              onLogoutClick?.();
+            }}
             title={collapsed ? "Log Out" : undefined}
-            to="/auth/logout"
+            type="button"
           >
             <img {...imageProps} className="size-[var(--space-24)] shrink-0" src={logOutIcon} />
             <span className={collapsed ? "sr-only" : undefined}>Log Out</span>
-          </NavLink>
+          </button>
         </nav>
       </aside>
     </>

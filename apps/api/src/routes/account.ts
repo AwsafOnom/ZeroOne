@@ -5,19 +5,29 @@ import type { Prisma } from "../prisma.js";
 import { getPrisma } from "../db.js";
 import { asyncHandler, badRequest, parse } from "../http.js";
 import { requireAuth, currentUser } from "../auth/middleware.js";
+import { getFirebaseAuth } from "../auth/firebase.js";
 import { countUnreadNotifications } from "../services/notifications.js";
+
+const avatarUrlSchema = z
+  .string()
+  .trim()
+  .max(2048)
+  .refine((value) => value.startsWith("/") || /^https?:\/\//i.test(value), {
+    message: "Avatar URL must be an absolute URL or site-relative path.",
+  });
 
 const profileSchema = z
   .object({
     name: z.string().trim().min(1).max(120).optional(),
-    email: z.string().email().optional(),
-    role: z.enum(["INDIVIDUAL", "PROFESSIONAL"]).optional(),
-    avatarUrl: z.string().url().nullable().optional(),
-    gender: z.string().trim().max(80).nullable().optional(),
+    avatarUrl: avatarUrlSchema.nullable().optional(),
+    gender: z
+      .enum(["FEMALE", "MALE", "NON_BINARY", "PREFER_NOT_TO_SAY"])
+      .nullable()
+      .optional(),
     dateOfBirth: z.coerce.date().nullable().optional(),
     heightCm: z.number().finite().positive().max(300).nullable().optional(),
     weightKg: z.number().finite().positive().max(500).nullable().optional(),
-    journeyStartDate: z.coerce.date().nullable().optional(),
+    role: z.enum(["INDIVIDUAL", "PROFESSIONAL"]).optional(),
   })
   .strict();
 
@@ -53,6 +63,27 @@ const conditionsSchema = z
     path: ["primaryConditionId"],
   });
 const assignmentSchema = z.object({}).strict();
+
+function formatSignInMethod(providerIds: string[]): string {
+  if (providerIds.length === 0) {
+    return "Email & password";
+  }
+
+  return providerIds
+    .map((providerId) => {
+      if (providerId === "google.com") {
+        return "Google";
+      }
+      if (providerId === "apple.com") {
+        return "Apple";
+      }
+      if (providerId === "password") {
+        return "Email & password";
+      }
+      return providerId;
+    })
+    .join(", ");
+}
 
 function serializeUser(user: {
   id: string;
@@ -200,14 +231,75 @@ accountRouter.get(
   }),
 );
 
+accountRouter.get(
+  "/users/me/account",
+  asyncHandler(async (request, response) => {
+    const prisma = getPrisma();
+    const userId = currentUser(request).id;
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: {
+        squadMemberships: {
+          where: { status: "ACTIVE" },
+          include: { squad: true, condition: true },
+          orderBy: { joinedAt: "asc" },
+          take: 1,
+        },
+      },
+    });
+
+    const membership = user.squadMemberships[0] ?? null;
+    let signInMethod = "Unknown";
+
+    try {
+      const firebaseUser = await getFirebaseAuth().getUser(user.firebaseUid);
+      const providerIds = firebaseUser.providerData.map((provider) => provider.providerId);
+      signInMethod = formatSignInMethod(providerIds);
+    } catch {
+      signInMethod = "Unknown";
+    }
+
+    response.json({
+      email: user.email,
+      journeyStartDate: user.journeyStartDate,
+      signInMethod,
+      squad: membership
+        ? {
+            id: membership.squad.id,
+            name: membership.squad.name,
+            conditionId: membership.conditionId,
+            conditionName: membership.condition.name,
+          }
+        : null,
+      primaryConditionLocked: Boolean(membership),
+    });
+  }),
+);
+
 accountRouter.patch(
   "/users/me",
   asyncHandler(async (request, response) => {
     const body = parse(profileSchema, request.body);
     const prisma = getPrisma();
+    const userId = currentUser(request).id;
+
+    if (body.role !== undefined) {
+      const existing = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
+      if (existing?.role) {
+        return badRequest("Your account role cannot be changed after onboarding.");
+      }
+    }
+
+    const { role, ...profileFields } = body;
     const user = await prisma.user.update({
-      where: { id: currentUser(request).id },
-      data: body,
+      where: { id: userId },
+      data: {
+        ...profileFields,
+        ...(role !== undefined ? { role } : {}),
+      },
       include: { conditions: { include: { condition: true } } },
     });
 
@@ -231,6 +323,25 @@ accountRouter.put(
   asyncHandler(async (request, response) => {
     const body = parse(conditionsSchema, request.body);
     const prisma = getPrisma();
+    const userId = currentUser(request).id;
+    const activeMembership = await prisma.squadMembership.findFirst({
+      where: { userId, status: "ACTIVE" },
+      select: { conditionId: true },
+    });
+
+    if (activeMembership) {
+      if (body.primaryConditionId !== activeMembership.conditionId) {
+        return badRequest(
+          "Your primary condition cannot be changed while you belong to a squad. Squad reassignment is not available yet.",
+        );
+      }
+      if (!body.conditionIds.includes(activeMembership.conditionId)) {
+        return badRequest(
+          "You cannot remove your squad condition while you have an active squad membership.",
+        );
+      }
+    }
+
     const conditions = await prisma.healthCondition.findMany({
       where: { id: { in: body.conditionIds } },
       select: { id: true },
@@ -238,7 +349,6 @@ accountRouter.put(
     if (conditions.length !== body.conditionIds.length) {
       return badRequest("One or more health conditions are invalid.");
     }
-    const userId = currentUser(request).id;
     await prisma.$transaction(
       [
         prisma.userCondition.deleteMany({

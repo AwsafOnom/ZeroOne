@@ -2,7 +2,7 @@ import "dotenv/config";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth, type DecodedIdToken } from "firebase-admin/auth";
 
-function getFirebaseAuth() {
+export function getFirebaseAuth() {
   const existingApp = getApps()[0];
   if (existingApp) {
     return getAuth(existingApp);

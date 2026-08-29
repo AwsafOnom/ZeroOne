@@ -1,19 +1,17 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
   useAssessment,
   useAssignSquad,
-  useConditions,
-  useHabits,
   useProfile,
   useSaveAssessment,
-  useSaveConditions,
-  useSaveHabits,
   useUpdateProfile,
 } from "../../api";
-import type { ApiHealthCondition, ApiSquadAssignment } from "@zeroone/shared";
+import type { ApiSquadAssignment } from "@zeroone/shared";
 import { useAuth } from "../../context/AuthContext";
+import { HealthConditionsForm } from "./HealthConditionsForm";
+import { LifestyleHabitsForm } from "./LifestyleHabitsForm";
 import { Button, Card, Input } from "../primitives";
 
 const logo = "/assets/zeroone-logo.png";
@@ -248,128 +246,16 @@ export function ProfilePage() {
 
 export function ConditionsPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { token } = useAuth();
-  const conditions = useConditions({ token });
-  const profile = useProfile({ token });
-  const saveConditions = useSaveConditions();
-  const [selected, setSelected] = useState<string[]>([]);
-  const [primaryConditionId, setPrimaryConditionId] = useState("");
-  const [errorMessage, setErrorMessage] = useState<string>();
 
-  useEffect(() => {
-    const savedConditions = profile.data?.user.conditions ?? [];
-    setSelected(savedConditions.map((condition) => condition.id));
-    setPrimaryConditionId(savedConditions.find((condition) => condition.isPrimary)?.id ?? savedConditions[0]?.id ?? "");
-  }, [profile.data]);
-
-  const groupedConditions = useMemo(() => {
-    const groups = new Map<string, ApiHealthCondition[]>();
-    for (const condition of conditions.data?.conditions ?? []) {
-      const existing = groups.get(condition.category) ?? [];
-      groups.set(condition.category, [...existing, condition]);
-    }
-    return [...groups.entries()];
-  }, [conditions.data]);
-
-  function toggleCondition(id: string) {
-    if (selected.includes(id)) {
-      const nextSelected = selected.filter((value) => value !== id);
-      setSelected(nextSelected);
-      if (primaryConditionId === id) {
-        setPrimaryConditionId(nextSelected[0] ?? "");
-      }
-      return;
-    }
-    setSelected([...selected, id]);
-  }
-
-  async function submit() {
-    setErrorMessage(undefined);
-    if (selected.length === 0) {
-      setErrorMessage("Select at least one condition to continue.");
-      return;
-    }
-    if (!primaryConditionId || !selected.includes(primaryConditionId)) {
-      setErrorMessage("Choose one of your selected conditions as your primary condition.");
-      return;
-    }
-    try {
-      await saveConditions.mutateAsync({ conditionIds: selected, primaryConditionId, token });
-      await queryClient.invalidateQueries({ queryKey: ["auth", "session"] });
-      navigate("/onboarding/wellness");
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to save your conditions.");
-    }
-  }
-
-  const queryError = conditions.error ?? profile.error;
-  const selectedConditions = selected
-    .map((id) => conditions.data?.conditions.find((condition) => condition.id === id))
-    .filter((condition): condition is ApiHealthCondition => Boolean(condition));
   return (
     <OnboardingShell current="conditions" subtitle="Start your wellness journey today" title="Health Conditions">
       <Card className="w-full" variant="outlined">
-        <QueryState error={queryError} isLoading={conditions.isLoading || profile.isLoading} />
-        {!conditions.isLoading && !queryError && groupedConditions.length === 0 && (
-          <p className="text-body text-text-secondary">No health conditions are available yet.</p>
-        )}
-        <div className="flex flex-col gap-[var(--space-layout)]">
-          {groupedConditions.map(([category, values]) => (
-            <fieldset className="flex flex-wrap gap-[var(--space-component-md)]" key={category}>
-              <legend className="mb-[var(--space-component-md)] w-full text-heading-sm font-weight-heading text-primary">
-                {category === "NEUROLOGICAL" ? "Neurological & Cognitive Conditions" : `${category[0]}${category.slice(1).toLowerCase()} Health Conditions`}
-              </legend>
-              {values.map((condition) => {
-                const isSelected = selected.includes(condition.id);
-                return (
-                  <button
-                    aria-pressed={isSelected}
-                    className={`rounded-sm border px-[var(--space-component-md)] py-[var(--space-component-sm)] text-body-lg transition-colors ${
-                      isSelected ? "border-primary bg-primary text-surface-default" : "border-default bg-surface-default text-text-primary hover:bg-surface-success"
-                    }`}
-                    key={condition.id}
-                    onClick={() => toggleCondition(condition.id)}
-                    type="button"
-                  >
-                    {condition.name}
-                  </button>
-                );
-              })}
-            </fieldset>
-          ))}
-          {selectedConditions.length > 0 && (
-            <fieldset className="border-t border-default pt-[var(--space-layout)]">
-              <legend className="text-heading-sm font-weight-heading text-primary">Primary Condition</legend>
-              <p className="mt-[var(--space-component-xs)] text-body-sm text-text-secondary">
-                Choose the condition we should use for your squad match.
-              </p>
-              <div aria-label="Primary condition" className="mt-[var(--space-component-md)] flex flex-wrap gap-[var(--space-component-md)]" role="radiogroup">
-                {selectedConditions.map((condition) => {
-                  const isPrimary = primaryConditionId === condition.id;
-                  return (
-                    <button
-                      aria-checked={isPrimary}
-                      className={`rounded-sm border px-[var(--space-component-md)] py-[var(--space-component-sm)] text-body-lg transition-colors ${
-                        isPrimary ? "border-primary bg-primary text-surface-default" : "border-default bg-surface-default text-text-primary hover:bg-surface-success"
-                      }`}
-                      key={condition.id}
-                      onClick={() => setPrimaryConditionId(condition.id)}
-                      role="radio"
-                      type="button"
-                    >
-                      {condition.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-          )}
-        </div>
-        <FormError message={errorMessage} />
-        <Button className="mt-[var(--space-layout)] w-full" isLoading={saveConditions.isPending} onClick={() => void submit()} size="lg">
-          Continue
-        </Button>
+        <HealthConditionsForm
+          onSaved={() => navigate("/onboarding/wellness")}
+          submitLabel="Continue"
+          token={token}
+        />
       </Card>
     </OnboardingShell>
   );
@@ -446,88 +332,18 @@ export function WellnessPage() {
   );
 }
 
-const habitTypes = [
-  ["SMOKING", "Smoking"],
-  ["ALCOHOL", "Alcohol"],
-  ["DRUG_USE", "Drug Use"],
-] as const;
-const habitFrequencies = ["NEVER", "OCCASIONALLY", "REGULARLY"] as const;
-
 export function HabitsPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { token } = useAuth();
-  const habits = useHabits({ token });
-  const saveHabits = useSaveHabits();
-  const [values, setValues] = useState<Record<(typeof habitTypes)[number][0], (typeof habitFrequencies)[number]>>({
-    SMOKING: "NEVER",
-    ALCOHOL: "NEVER",
-    DRUG_USE: "NEVER",
-  });
-  const [errorMessage, setErrorMessage] = useState<string>();
-
-  useEffect(() => {
-    if (!habits.data?.habits.length) {
-      return;
-    }
-    setValues((current) => {
-      const next = { ...current };
-      for (const habit of habits.data.habits) {
-        if (habit.type in next && habitFrequencies.includes(habit.frequency as (typeof habitFrequencies)[number])) {
-          next[habit.type as keyof typeof next] = habit.frequency as (typeof habitFrequencies)[number];
-        }
-      }
-      return next;
-    });
-  }, [habits.data]);
-
-  async function submit() {
-    setErrorMessage(undefined);
-    try {
-      await saveHabits.mutateAsync({
-        habits: habitTypes.map(([type]) => ({ frequency: values[type], type })),
-        token,
-      });
-      await queryClient.invalidateQueries({ queryKey: ["auth", "session"] });
-      navigate("/onboarding/review");
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to save your lifestyle habits.");
-    }
-  }
 
   return (
     <OnboardingShell current="habits" subtitle="Help us personalize your experience" title="Lifestyle Habits">
       <Card className="w-full max-w-[var(--space-577-69)]" variant="outlined">
-        <QueryState error={habits.error} isLoading={habits.isLoading} />
-        <div className="flex flex-col gap-[var(--space-component-xl)]">
-          {habitTypes.map(([type, label]) => (
-            <fieldset className="flex flex-col gap-[var(--space-component-md)]" key={type}>
-              <legend className="text-heading-sm font-weight-heading text-primary">{label}</legend>
-              <div className="grid grid-cols-3 gap-[var(--space-component-md)]">
-                {habitFrequencies.map((frequency) => {
-                  const isSelected = values[type] === frequency;
-                  return (
-                    <button
-                      aria-pressed={isSelected}
-                      className={`rounded-sm border px-[var(--space-component-sm)] py-[var(--space-component-md)] text-body-sm ${
-                        isSelected ? "border-primary bg-primary font-weight-button text-surface-default" : "border-default bg-surface-default text-text-primary"
-                      }`}
-                      key={frequency}
-                      onClick={() => setValues((current) => ({ ...current, [type]: frequency }))}
-                      type="button"
-                    >
-                      {frequency[0]}{frequency.slice(1).toLowerCase()}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-          ))}
-        </div>
-        <FormError message={errorMessage} />
-        <Button className="mt-[var(--space-layout)] w-full" isLoading={saveHabits.isPending} onClick={() => void submit()} size="lg">
-          Continue
-        </Button>
+        <LifestyleHabitsForm
+          onSaved={() => navigate("/onboarding/review")}
+          submitLabel="Continue"
+          token={token}
+        />
       </Card>
     </OnboardingShell>
   );

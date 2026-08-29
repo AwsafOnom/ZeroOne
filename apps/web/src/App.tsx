@@ -22,6 +22,7 @@ import { HealingChainMenteePage, HealingChainMentorPage } from "./components/hea
 import { AiAssistantPage } from "./components/assistant";
 import { NotificationsPage } from "./components/notifications";
 import { RoadmapPage, roadmapFeatures, roadmapRoutes } from "./components/roadmap";
+import { SettingsPage } from "./components/settings";
 import { HowItWorksPage } from "./components/recovery/HowItWorksPage";
 import { OnggiGuardianPage } from "./components/recovery/OnggiGuardianPage";
 import { SquadDetailsPage } from "./components/recovery/SquadDetailsPage";
@@ -165,6 +166,7 @@ export function App() {
           <Route element={<Navigate replace to="/auth/login" />} path="/auth" />
           <Route element={<AuthPage mode="login" />} path="/auth/login" />
           <Route element={<AuthPage mode="signup" />} path="/auth/signup" />
+          <Route element={<Navigate replace to="/dashboard" />} path="/auth/logout" />
 
           <Route element={<RequireAuth />}>
             <Route element={<RolePage />} path="/onboarding/role" />
@@ -193,6 +195,7 @@ export function App() {
               <Route element={<HealingChainMenteePage />} path="/healing-chain/mentee" />
               <Route element={<AiAssistantPage />} path="/ai-assistant" />
               <Route element={<NotificationsPage />} path="/notifications" />
+              <Route element={<SettingsPage />} path="/settings" />
               {roadmapRoutes.map(({ path, slug }) => (
                 <Route element={<RoadmapRoute slug={slug} />} key={path} path={path} />
               ))}

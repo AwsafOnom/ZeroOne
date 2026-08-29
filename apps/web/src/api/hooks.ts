@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import type {
+  ApiAccountInfo,
   ApiAssistantChatMessage,
   ApiAssistantChatResponse,
   ApiActivity,
@@ -90,6 +91,7 @@ export function useProfile(options: QueryAuthOptions): UseQueryResult<{ user: Au
 
 interface ProfileUpdate {
   name?: string;
+  avatarUrl?: string | null;
   role?: "INDIVIDUAL" | "PROFESSIONAL";
   gender?: string;
   dateOfBirth?: string;
@@ -97,11 +99,21 @@ interface ProfileUpdate {
   weightKg?: number;
 }
 
+export function useAccountInfo(options: QueryAuthOptions): UseQueryResult<ApiAccountInfo> {
+  return useQuery({
+    queryKey: ["users", "me", "account", options.token],
+    queryFn: () => requestJson<ApiAccountInfo>("/api/v1/users/me/account", { token: options.token }),
+    enabled: queryEnabled(options),
+  });
+}
+
 export function useUpdateProfile(): UseMutationResult<
   { user: AuthSession["user"] },
   Error,
   ProfileUpdate & { token?: string }
 > {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ token, ...body }) =>
       requestJson<{ user: AuthSession["user"] }>("/api/v1/users/me", {
@@ -109,6 +121,69 @@ export function useUpdateProfile(): UseMutationResult<
         token,
         body,
       }),
+    onMutate: async (variables) => {
+      const { token, ...body } = variables;
+      if (!token) {
+        return undefined;
+      }
+
+      const profileKey = ["users", "me", token] as const;
+      const sessionKey = ["auth", "session", token] as const;
+      await queryClient.cancelQueries({ queryKey: profileKey });
+      await queryClient.cancelQueries({ queryKey: sessionKey });
+
+      const previousProfile = queryClient.getQueryData<{ user: AuthSession["user"] }>(profileKey);
+      const previousSession = queryClient.getQueryData<AuthSession>(sessionKey);
+
+      if (previousProfile) {
+        queryClient.setQueryData(profileKey, {
+          user: {
+            ...previousProfile.user,
+            ...body,
+            dateOfBirth:
+              body.dateOfBirth !== undefined
+                ? body.dateOfBirth
+                : previousProfile.user.dateOfBirth,
+          },
+        });
+      }
+
+      if (previousSession) {
+        queryClient.setQueryData(sessionKey, {
+          ...previousSession,
+          user: {
+            ...previousSession.user,
+            ...body,
+            dateOfBirth:
+              body.dateOfBirth !== undefined
+                ? body.dateOfBirth
+                : previousSession.user.dateOfBirth,
+          },
+        });
+      }
+
+      return { previousProfile, previousSession, token };
+    },
+    onError: (_error, _variables, context) => {
+      if (!context?.token) {
+        return;
+      }
+      const profileKey = ["users", "me", context.token] as const;
+      const sessionKey = ["auth", "session", context.token] as const;
+      if (context.previousProfile) {
+        queryClient.setQueryData(profileKey, context.previousProfile);
+      }
+      if (context.previousSession) {
+        queryClient.setQueryData(sessionKey, context.previousSession);
+      }
+    },
+    onSettled: (_data, _error, variables) => {
+      if (!variables.token) {
+        return;
+      }
+      void queryClient.invalidateQueries({ queryKey: ["users", "me", variables.token] });
+      void queryClient.invalidateQueries({ queryKey: ["auth", "session", variables.token] });
+    },
   });
 }
 
