@@ -12,8 +12,7 @@ import { AssistantChatHeader } from "./AssistantChatHeader";
 import { AssistantMessageBubble } from "./AssistantMessageBubble";
 import { AssistantWelcomeHero } from "./AssistantWelcomeHero";
 
-const sendIcon =
-  "https://www.figma.com/api/mcp/asset/5768a4ff-d860-4c0c-accd-bc905149a251.svg";
+const sendIcon = "/assets/assistant-send.svg";
 
 function firstNameFrom(displayName?: string | null) {
   if (!displayName?.trim()) {

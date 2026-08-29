@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 
-export const ONGGI_VESSEL_IMAGE =
-  "https://www.figma.com/api/mcp/asset/e480d693-d3c3-4ad4-b6b4-35d262e2dc12.png";
+export const ONGGI_VESSEL_IMAGE = "/assets/onggi-vessel.png";
 
 export type OnggiVesselSize = "guardian" | "card";
 

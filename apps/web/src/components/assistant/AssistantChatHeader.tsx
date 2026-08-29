@@ -1,7 +1,6 @@
 import { Button, cx } from "../primitives";
 
-const assistantAvatarIcon =
-  "https://www.figma.com/api/mcp/asset/cb1c076f-2911-4dcd-9c43-2af1a17bfdad.svg";
+const assistantAvatarIcon = "/assets/assistant-sparkle.svg";
 
 export function AssistantChatHeader({
   className,

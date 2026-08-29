@@ -2,31 +2,19 @@ import type { ImgHTMLAttributes } from "react";
 import { NavLink } from "react-router-dom";
 import { Badge, cx } from "../primitives";
 
-const logoAsset =
-  "https://www.figma.com/api/mcp/asset/8ea50afa-e6de-48a6-9292-9e5f7ef86f74.png";
+const logoAsset = "/assets/zeroone-logo.png";
 
-const dashboardIcon =
-  "https://www.figma.com/api/mcp/asset/5c80a825-4b67-40c0-be20-4111cd3dead3.svg";
-const recoveryIcon =
-  "https://www.figma.com/api/mcp/asset/5dbc25dc-0c61-40ca-94d1-58778d578e9d.svg";
-const communityIcon =
-  "https://www.figma.com/api/mcp/asset/96d381b8-f1f6-43f8-9419-18c4ed051da6.svg";
-const healingChainIcon =
-  "https://www.figma.com/api/mcp/asset/fccdc4dd-8774-4a32-af15-aeec152288a6.svg";
-const healingJournalIcon =
-  "https://www.figma.com/api/mcp/asset/33d259ef-9739-4ffe-aad2-326ad6a0c5da.svg";
-const exploreMapIcon =
-  "https://www.figma.com/api/mcp/asset/78da4b2c-eb64-4442-b150-7ecd5c4f3b2e.svg";
-const learnNewsIcon =
-  "https://www.figma.com/api/mcp/asset/9687fbdc-eb88-47bb-8385-b150abe3812c.svg";
-const rewardsIcon =
-  "https://www.figma.com/api/mcp/asset/cb930888-4f67-4f47-ac29-6fb1ffef16dd.svg";
-const helpIcon =
-  "https://www.figma.com/api/mcp/asset/518c5fc3-1ff2-45fa-9b93-d3577e372b58.svg";
-const settingsIcon =
-  "https://www.figma.com/api/mcp/asset/ac1ac803-b119-46dd-871f-4d54ebda23ba.svg";
-const logOutIcon =
-  "https://www.figma.com/api/mcp/asset/f3daed6a-646f-4244-812c-85feed7f7902.svg";
+const dashboardIcon = "/assets/nav-dashboard.svg";
+const recoveryIcon = "/assets/nav-recovery.svg";
+const communityIcon = "/assets/nav-community.svg";
+const healingChainIcon = "/assets/nav-healing-chain.svg";
+const healingJournalIcon = "/assets/nav-healing-journal.svg";
+const exploreMapIcon = "/assets/nav-explore-map.svg";
+const learnNewsIcon = "/assets/nav-learn-news.svg";
+const rewardsIcon = "/assets/nav-rewards.svg";
+const helpIcon = "/assets/nav-help.svg";
+const settingsIcon = "/assets/nav-settings.svg";
+const logOutIcon = "/assets/nav-log-out.svg";
 
 export interface SidebarItem {
   label: string;

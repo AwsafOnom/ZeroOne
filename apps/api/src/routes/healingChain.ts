@@ -4,6 +4,10 @@ import { getPrisma } from "../db.js";
 import { asyncHandler, conflict, notFound, parse } from "../http.js";
 import { requireAuth } from "../auth/middleware.js";
 import { getHealingChainOverview } from "../services/healingChain.js";
+import {
+  activeLinkBetweenUsersWhere,
+  isSparkRecipientOnLink,
+} from "../services/sparkMentorshipLink.js";
 import { pageQuery, userIdFrom } from "./helpers.js";
 
 const sparkSchema = z
@@ -93,11 +97,17 @@ healingChainRouter.post(
   asyncHandler(async (request, response) => {
     const body = parse(sparkSchema, request.body);
     const senderId = userIdFrom(request);
+    const recipientId = body.recipientId;
+
+    if (recipientId === senderId) {
+      return conflict("Sparks can only be sent to the connected member.");
+    }
+
     const prisma = getPrisma();
     const link = body.mentorshipLinkId
       ? await accessibleLink(body.mentorshipLinkId, senderId)
       : await prisma.mentorshipLink.findFirst({
-          where: { OR: [{ mentorId: senderId }, { menteeId: senderId }], status: "ACTIVE" },
+          where: activeLinkBetweenUsersWhere(senderId, recipientId),
         });
 
     if (!link) {
@@ -113,8 +123,7 @@ healingChainRouter.post(
       return conflict("This spark action is not available.");
     }
 
-    const recipientId = body.recipientId;
-    if (recipientId === senderId || (recipientId !== link.mentorId && recipientId !== link.menteeId)) {
+    if (!isSparkRecipientOnLink(link, senderId, recipientId)) {
       return conflict("Sparks can only be sent to the connected member.");
     }
 

@@ -4,12 +4,9 @@ import { NotificationsBellBadge } from "../notifications/NotificationsDropdown";
 import { useSession } from "../../api";
 import { useAuth } from "../../context/AuthContext";
 
-const searchIcon =
-  "https://www.figma.com/api/mcp/asset/88045b89-de56-4ba0-970c-3a03d415d1ff.svg";
-const assistantIcon =
-  "https://www.figma.com/api/mcp/asset/9c225097-d2c7-42d4-86e2-8f5474b374d3.svg";
-const notificationIcon =
-  "https://www.figma.com/api/mcp/asset/92b7b59e-2d61-4b13-a6b5-2eefa41ad4f6.svg";
+const searchIcon = "/assets/icon-search.svg";
+const assistantIcon = "/assets/icon-assistant.svg";
+const notificationIcon = "/assets/icon-notification.svg";
 
 export interface TopBarProps {
   onMenuOpen?: MouseEventHandler<HTMLButtonElement>;

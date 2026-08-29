@@ -6,8 +6,7 @@ import type {
 } from "react";
 import { cx } from "./utils";
 
-const visibilityOffAsset =
-  "https://www.figma.com/api/mcp/asset/76788ea5-40d7-4b41-b577-a92fab9b1cdb.svg";
+const visibilityOffAsset = "/assets/icon-password-visible.svg";
 
 interface BaseFieldProps {
   label?: ReactNode;

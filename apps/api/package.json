@@ -31,6 +31,7 @@
     "prisma:generate": "prisma generate",
     "prisma:seed": "tsx prisma/seed.ts",
     "start": "node dist/src/server.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:spark-matching": "tsx scripts/spark-recipient-matching-test.mts"
   }
 }

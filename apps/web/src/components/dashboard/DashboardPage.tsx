@@ -23,16 +23,11 @@ import { Avatar, Button, Card, ProgressBar, Skeleton } from "../primitives";
 import { ActivityIcon } from "../recovery/activityIcons";
 import { SupportResourcesModal } from "./SupportResourcesModal";
 
-const waterIcon =
-  "https://www.figma.com/api/mcp/asset/c1ef3280-3532-4411-80d6-f17ee19eb5ea.svg";
-const calorieIcon =
-  "https://www.figma.com/api/mcp/asset/334af513-9cdf-438a-9493-816c840c47b6.svg";
-const sleepIcon =
-  "https://www.figma.com/api/mcp/asset/589ab7b4-a958-4fcd-bb8d-b96e18c58134.svg";
-const onggiImage =
-  "https://www.figma.com/api/mcp/asset/e480d693-d3c3-4ad4-b6b4-35d262e2dc12.png";
-const supportImage =
-  "https://www.figma.com/api/mcp/asset/3c1c64fe-b506-4e83-9d08-af58a932fb51.png";
+const waterIcon = "/assets/dashboard-water.svg";
+const calorieIcon = "/assets/dashboard-calorie.svg";
+const sleepIcon = "/assets/dashboard-sleep.svg";
+const onggiImage = "/assets/onggi-vessel.png";
+const supportImage = "/assets/dashboard-support.png";
 
 function SectionLoading() {
   return <Skeleton className="h-[var(--space-128-856)] w-full" />;

@@ -1,7 +1,6 @@
 import { Card } from "../primitives";
 
-const assistantHeroIcon =
-  "https://www.figma.com/api/mcp/asset/cb1c076f-2911-4dcd-9c43-2af1a17bfdad.svg";
+const assistantHeroIcon = "/assets/assistant-sparkle.svg";
 
 export function AssistantWelcomeHero({ firstName }: { firstName: string }) {
   return (
