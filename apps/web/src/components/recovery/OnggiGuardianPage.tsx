@@ -65,8 +65,8 @@ export function OnggiGuardianPage() {
   const insights = useSquadInsights({ token });
   const impactFeed = useImpactFeed({ limit: 6, token });
 
-  const onggiState = cycle.data?.cycle.onggiState;
-  const cycleData = cycle.data?.cycle;
+  const onggiState = cycle.data?.cycle?.onggiState;
+  const cycleData = cycle.data?.cycle ?? undefined;
   const insightData = insights.data?.insights;
   const isLoading = cycle.isLoading || health.isLoading || insights.isLoading;
   const daysRemaining = cycleData ? Math.max(cycleData.cycleDays - cycleData.cycleDay, 0) : 0;

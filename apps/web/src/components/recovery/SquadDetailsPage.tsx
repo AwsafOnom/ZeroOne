@@ -15,9 +15,9 @@ export function SquadDetailsPage() {
   const matchup = useSquadMatchup({ token });
   const contributions = useMemberContributions({ token });
 
-  const yourSquad = matchup.data?.matchup.yourSquad;
-  const opponentSquad = matchup.data?.matchup.opponentSquad;
-  const insights = matchup.data?.matchup.insights;
+  const yourSquad = matchup.data?.matchup?.yourSquad;
+  const opponentSquad = matchup.data?.matchup?.opponentSquad;
+  const insights = matchup.data?.matchup?.insights;
 
   return (
     <div className="flex flex-col gap-[var(--space-layout)]">

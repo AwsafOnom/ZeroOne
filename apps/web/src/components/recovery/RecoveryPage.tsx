@@ -544,7 +544,7 @@ export function ActivitiesPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-layout)]">
-      <CycleHeader cycle={cycle.data?.cycle} error={cycle.error} isLoading={cycle.isLoading} />
+      <CycleHeader cycle={cycle.data?.cycle ?? undefined} error={cycle.error} isLoading={cycle.isLoading} />
       {actionError && <SectionError message={actionError} />}
       <AiSuggestions activities={activities.data?.activities ?? []} error={activities.error} isLoading={activities.isLoading} />
       <div className="grid gap-[var(--space-layout)] lg:grid-cols-2">

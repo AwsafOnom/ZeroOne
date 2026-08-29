@@ -550,7 +550,7 @@ export function DashboardPage() {
           pendingId={pendingId}
         />
         <OnggiGuardian
-          cycle={cycle.data?.cycle}
+          cycle={cycle.data?.cycle ?? undefined}
           error={cycle.error}
           isLoading={cycle.isLoading}
         />

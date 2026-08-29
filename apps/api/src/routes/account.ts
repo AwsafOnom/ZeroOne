@@ -85,6 +85,43 @@ function formatSignInMethod(providerIds: string[]): string {
     .join(", ");
 }
 
+async function buildAccountInfo(user: {
+  email: string | null;
+  journeyStartDate: Date | null;
+  firebaseUid: string;
+  squadMemberships: Array<{
+    conditionId: string;
+    squad: { id: string; name: string };
+    condition: { name: string };
+  }>;
+}) {
+  const membership = user.squadMemberships[0] ?? null;
+  let signInMethod = "Unknown";
+
+  try {
+    const firebaseUser = await getFirebaseAuth().getUser(user.firebaseUid);
+    const providerIds = firebaseUser.providerData.map((provider) => provider.providerId);
+    signInMethod = formatSignInMethod(providerIds);
+  } catch {
+    signInMethod = "Unknown";
+  }
+
+  return {
+    email: user.email,
+    journeyStartDate: user.journeyStartDate,
+    signInMethod,
+    squad: membership
+      ? {
+          id: membership.squad.id,
+          name: membership.squad.name,
+          conditionId: membership.conditionId,
+          conditionName: membership.condition.name,
+        }
+      : null,
+    primaryConditionLocked: Boolean(membership),
+  };
+}
+
 function serializeUser(user: {
   id: string;
   firebaseUid: string;
@@ -206,7 +243,12 @@ accountRouter.get(
         conditions: { include: { condition: true } },
         lifestyleHabits: true,
         wellnessAssessments: { orderBy: { updatedAt: "desc" } },
-        squadMemberships: { where: { status: "ACTIVE" } },
+        squadMemberships: {
+          where: { status: "ACTIVE" },
+          include: { squad: true, condition: true },
+          orderBy: { joinedAt: "asc" },
+          take: 1,
+        },
       },
     });
 
@@ -214,6 +256,7 @@ accountRouter.get(
       user: serializeUser(user),
       unreadNotifications: await countUnreadNotifications(user.id),
       onboarding: onboardingStatus(user),
+      account: await buildAccountInfo(user),
     });
   }),
 );
@@ -248,31 +291,7 @@ accountRouter.get(
       },
     });
 
-    const membership = user.squadMemberships[0] ?? null;
-    let signInMethod = "Unknown";
-
-    try {
-      const firebaseUser = await getFirebaseAuth().getUser(user.firebaseUid);
-      const providerIds = firebaseUser.providerData.map((provider) => provider.providerId);
-      signInMethod = formatSignInMethod(providerIds);
-    } catch {
-      signInMethod = "Unknown";
-    }
-
-    response.json({
-      email: user.email,
-      journeyStartDate: user.journeyStartDate,
-      signInMethod,
-      squad: membership
-        ? {
-            id: membership.squad.id,
-            name: membership.squad.name,
-            conditionId: membership.conditionId,
-            conditionName: membership.condition.name,
-          }
-        : null,
-      primaryConditionLocked: Boolean(membership),
-    });
+    response.json({ account: await buildAccountInfo(user) });
   }),
 );
 

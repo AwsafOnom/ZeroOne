@@ -42,6 +42,13 @@ export interface ApiAccountInfo {
   primaryConditionLocked: boolean;
 }
 
+export interface AuthSession {
+  user: ApiUser;
+  unreadNotifications: number;
+  onboarding: ApiOnboardingStatus;
+  account: ApiAccountInfo;
+}
+
 export type OnboardingStep =
   | "role"
   | "profile"
@@ -60,12 +67,6 @@ export interface ApiOnboardingStatus {
   habitsCompleted: boolean;
   assigned: boolean;
   nextStep: OnboardingStep;
-}
-
-export interface AuthSession {
-  user: ApiUser;
-  unreadNotifications: number;
-  onboarding: ApiOnboardingStatus;
 }
 
 export interface ApiDashboardSummary {

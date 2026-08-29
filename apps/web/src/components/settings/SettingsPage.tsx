@@ -1,19 +1,28 @@
 import { useEffect, useState } from "react";
-import { useAccountInfo, useProfile, useUpdateProfile } from "../../api";
+import { useProfile, useSession, useUpdateProfile } from "../../api";
+import { getFirebaseAuth } from "../../auth/firebase";
 import { useAuth } from "../../context/AuthContext";
+import { formatRequestError } from "../../lib/api";
 import { HealthConditionsForm } from "../onboarding/HealthConditionsForm";
 import { LifestyleHabitsForm } from "../onboarding/LifestyleHabitsForm";
+import { ChangePasswordForm } from "./ChangePasswordForm";
 import { Avatar, Badge, Button, Card, Input, Toast, cx } from "../primitives";
 
-const settingsNavItems = [
+type SettingsSectionId = "profile" | "password";
+
+const settingsNavItems: Array<{
+  id: SettingsSectionId | "notifications" | "privacy" | "terms" | "support" | "about";
+  label: string;
+  enabled: boolean;
+}> = [
   { id: "profile", label: "My Profile", enabled: true },
-  { id: "password", label: "Change Password", enabled: false },
+  { id: "password", label: "Change Password", enabled: true },
   { id: "notifications", label: "Notification Settings", enabled: false },
   { id: "privacy", label: "Privacy Policy", enabled: false },
   { id: "terms", label: "Terms of Service", enabled: false },
   { id: "support", label: "Help & Support", enabled: false },
   { id: "about", label: "About", enabled: false },
-] as const;
+];
 
 function formatDisplayDate(value: string | null | undefined) {
   if (!value) {
@@ -39,7 +48,9 @@ function SettingsSection({
     <Card className="flex flex-col gap-[var(--space-component-lg)]" variant="outlined">
       <div>
         <h2 className="text-heading-sm font-weight-heading text-text-heading">{title}</h2>
-        {description ? <p className="mt-[var(--space-component-xs)] text-body-sm text-text-secondary">{description}</p> : null}
+        {description ? (
+          <p className="mt-[var(--space-component-xs)] text-body-sm text-text-secondary">{description}</p>
+        ) : null}
       </div>
       {children}
     </Card>
@@ -71,10 +82,12 @@ function FormError({ message }: { message?: string }) {
 
 export function SettingsPage() {
   const { token } = useAuth();
+  const session = useSession({ token });
   const profile = useProfile({ token });
-  const account = useAccountInfo({ token });
   const updateProfile = useUpdateProfile();
+  const firebaseUser = getFirebaseAuth()?.currentUser ?? null;
 
+  const [activeSection, setActiveSection] = useState<SettingsSectionId>("profile");
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [gender, setGender] = useState("");
@@ -87,18 +100,20 @@ export function SettingsPage() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
 
+  const accountInfo = session.data?.account;
+  const user = profile.data?.user ?? session.data?.user;
+
   useEffect(() => {
-    if (!profile.data?.user) {
+    if (!user) {
       return;
     }
-    const saved = profile.data.user;
-    setName(saved.name ?? "");
-    setAvatarUrl(saved.avatarUrl ?? "");
-    setGender(saved.gender ?? "");
-    setDateOfBirth(saved.dateOfBirth?.slice(0, 10) ?? "");
-    setHeightCm(saved.heightCm?.toString() ?? "");
-    setWeightKg(saved.weightKg?.toString() ?? "");
-  }, [profile.data]);
+    setName(user.name ?? "");
+    setAvatarUrl(user.avatarUrl ?? "");
+    setGender(user.gender ?? "");
+    setDateOfBirth(user.dateOfBirth?.slice(0, 10) ?? "");
+    setHeightCm(user.heightCm?.toString() ?? "");
+    setWeightKg(user.weightKg?.toString() ?? "");
+  }, [user]);
 
   useEffect(() => {
     if (!toastOpen) {
@@ -156,16 +171,14 @@ export function SettingsPage() {
       });
       showToast("Profile updated.", "success");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to save your profile.";
+      const message = formatRequestError(error, "Unable to save your profile.");
       setErrorMessage(message);
       showToast(message, "error");
     }
   }
 
-  const isLoading = profile.isLoading || account.isLoading;
-  const loadError = profile.error ?? account.error;
-  const user = profile.data?.user;
-  const accountInfo = account.data;
+  const isLoading = session.isLoading || profile.isLoading;
+  const loadError = session.error ?? profile.error;
 
   return (
     <div className="pb-[var(--space-layout)]">
@@ -178,26 +191,36 @@ export function SettingsPage() {
 
       <div className="flex flex-col gap-[var(--space-layout)] lg:flex-row lg:items-start">
         <nav aria-label="Settings sections" className="flex w-full shrink-0 flex-col gap-[var(--space-component-sm)] lg:w-[var(--space-275-078)]">
-          {settingsNavItems.map((item) => (
-            <button
-              className={cx(
-                "flex items-center justify-between rounded-sm px-[var(--space-card-padding)] py-[var(--space-component-md)] text-left text-body-lg transition-colors",
-                item.enabled
-                  ? "bg-primary text-surface-default"
-                  : "cursor-not-allowed bg-surface-muted text-text-secondary opacity-80",
-              )}
-              disabled={!item.enabled}
-              key={item.id}
-              type="button"
-            >
-              <span>{item.label}</span>
-              {!item.enabled ? (
-                <Badge className="shrink-0" variant="status">
-                  Planned
-                </Badge>
-              ) : null}
-            </button>
-          ))}
+          {settingsNavItems.map((item) => {
+            const isActive = item.enabled && item.id === activeSection;
+            return (
+              <button
+                className={cx(
+                  "flex items-center justify-between rounded-sm px-[var(--space-card-padding)] py-[var(--space-component-md)] text-left text-body-lg transition-colors",
+                  item.enabled
+                    ? isActive
+                      ? "bg-primary text-surface-default"
+                      : "bg-surface-muted text-text-primary hover:bg-surface-success"
+                    : "cursor-not-allowed bg-surface-muted text-text-secondary opacity-80",
+                )}
+                disabled={!item.enabled}
+                key={item.id}
+                onClick={() => {
+                  if (item.enabled && (item.id === "profile" || item.id === "password")) {
+                    setActiveSection(item.id);
+                  }
+                }}
+                type="button"
+              >
+                <span>{item.label}</span>
+                {!item.enabled ? (
+                  <Badge className="shrink-0" variant="status">
+                    Planned
+                  </Badge>
+                ) : null}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="flex min-w-0 flex-1 flex-col gap-[var(--space-layout)]">
@@ -205,10 +228,25 @@ export function SettingsPage() {
             <Card state="loading" variant="outlined" />
           ) : loadError ? (
             <Card
-              errorContent={<p className="text-body text-orange">{loadError.message}</p>}
+              errorContent={<p className="text-body text-orange">{formatRequestError(loadError)}</p>}
               state="error"
               variant="outlined"
             />
+          ) : activeSection === "password" ? (
+            <SettingsSection
+              description="Manage your password and security settings."
+              title="Password & Authentication"
+            >
+              {firebaseUser ? (
+                <ChangePasswordForm
+                  onError={(message) => showToast(message, "error")}
+                  onSuccess={(message) => showToast(message, "success")}
+                  user={firebaseUser}
+                />
+              ) : (
+                <p className="text-body text-text-secondary">Sign in again to change your password.</p>
+              )}
+            </SettingsSection>
           ) : (
             <>
               <Card className="flex flex-col gap-[var(--space-component-lg)] md:flex-row md:items-center md:justify-between" variant="outlined">
@@ -216,22 +254,16 @@ export function SettingsPage() {
                   <Avatar alt="" name={user?.name ?? undefined} size="lg" src={avatarUrl || user?.avatarUrl || undefined} />
                   <div>
                     <p className="text-heading-sm font-weight-heading text-text-heading">{user?.name ?? "ZeroOne member"}</p>
-                    <p className="mt-[var(--space-component-xs)] text-body-sm text-text-secondary">{accountInfo?.email ?? "No email on file"}</p>
+                    <p className="mt-[var(--space-component-xs)] text-body-sm text-text-secondary">
+                      {accountInfo?.email ?? user?.email ?? "No email on file"}
+                    </p>
                   </div>
                 </div>
               </Card>
 
-              <SettingsSection
-                description="Update your personal details and information."
-                title="Personal Information"
-              >
+              <SettingsSection description="Update your personal details and information." title="Personal Information">
                 <div className="grid gap-[var(--space-component-lg)] md:grid-cols-2">
-                  <Input
-                    error={fieldErrors.name}
-                    label="Display name"
-                    onChange={(event) => setName(event.target.value)}
-                    value={name}
-                  />
+                  <Input error={fieldErrors.name} label="Display name" onChange={(event) => setName(event.target.value)} value={name} />
                   <Input
                     error={fieldErrors.avatarUrl}
                     label="Avatar URL"
@@ -239,13 +271,7 @@ export function SettingsPage() {
                     placeholder="/avatars/example.png"
                     value={avatarUrl}
                   />
-                  <Input
-                    as="select"
-                    error={fieldErrors.gender}
-                    label="Gender"
-                    onChange={(event) => setGender(event.target.value)}
-                    value={gender}
-                  >
+                  <Input as="select" error={fieldErrors.gender} label="Gender" onChange={(event) => setGender(event.target.value)} value={gender}>
                     <option value="">Select your gender</option>
                     <option value="FEMALE">Female</option>
                     <option value="MALE">Male</option>
@@ -284,10 +310,7 @@ export function SettingsPage() {
                 </div>
               </SettingsSection>
 
-              <SettingsSection
-                description="Manage the conditions associated with your recovery journey."
-                title="Health Conditions"
-              >
+              <SettingsSection description="Manage the conditions associated with your recovery journey." title="Health Conditions">
                 <HealthConditionsForm
                   onSaved={() => showToast("Health conditions updated.", "success")}
                   primaryConditionLocked={accountInfo?.primaryConditionLocked}
@@ -301,9 +324,12 @@ export function SettingsPage() {
 
               <SettingsSection description="These details are managed by your sign-in provider or squad assignment." title="Account Information">
                 <div className="grid gap-[var(--space-component-lg)] sm:grid-cols-2">
-                  <ReadOnlyField label="Email" value={accountInfo?.email ?? "Not set"} />
+                  <ReadOnlyField label="Email" value={accountInfo?.email ?? user?.email ?? "Not set"} />
                   <ReadOnlyField label="Sign-in method" value={accountInfo?.signInMethod ?? "Unknown"} />
-                  <ReadOnlyField label="Journey start date" value={formatDisplayDate(accountInfo?.journeyStartDate)} />
+                  <ReadOnlyField
+                    label="Journey start date"
+                    value={formatDisplayDate(accountInfo?.journeyStartDate ?? user?.journeyStartDate)}
+                  />
                   <ReadOnlyField
                     label="Current squad"
                     value={accountInfo?.squad ? `${accountInfo.squad.name} (${accountInfo.squad.conditionName})` : "Not assigned"}
@@ -320,23 +346,6 @@ export function SettingsPage() {
                     </p>
                   </div>
                   <Badge variant="status">Planned</Badge>
-                </div>
-              </SettingsSection>
-
-              <SettingsSection
-                description="Manage your password and security settings."
-                title="Password & Authentication"
-              >
-                <div className="grid gap-[var(--space-component-lg)] opacity-70 md:grid-cols-3">
-                  <Input disabled label="Current password" value="" />
-                  <Input disabled label="New password" value="" />
-                  <Input disabled label="Confirm password" value="" />
-                </div>
-                <div className="flex items-center justify-between gap-[var(--space-component-md)]">
-                  <Badge variant="status">Planned</Badge>
-                  <Button disabled type="button" variant="secondary">
-                    Update password
-                  </Button>
                 </div>
               </SettingsSection>
             </>

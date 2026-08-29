@@ -44,7 +44,7 @@ import type {
   ApiWellnessAssessment,
   AuthSession,
 } from "@zeroone/shared";
-import { requestJson } from "../lib/api";
+import { requestJson, requestJsonAllowNotFound } from "../lib/api";
 
 interface QueryAuthOptions {
   token?: string;
@@ -300,43 +300,63 @@ export function useActivities(
   });
 }
 
-export function useSquad(options: QueryAuthOptions): UseQueryResult<{ squad: ApiSquad }> {
+export function useSquad(options: QueryAuthOptions): UseQueryResult<{ squad: ApiSquad | null }> {
   return useQuery({
     queryKey: ["squad", options.token],
-    queryFn: () => requestJson<{ squad: ApiSquad }>("/api/v1/squads/me", { token: options.token }),
+    queryFn: async () => {
+      const response = await requestJsonAllowNotFound<{ squad: ApiSquad }>("/api/v1/squads/me", {
+        token: options.token,
+      });
+      return { squad: response?.squad ?? null };
+    },
     enabled: queryEnabled(options),
   });
 }
 
 export function useRecoveryCycle(
   options: QueryAuthOptions,
-): UseQueryResult<{ cycle: ApiRecoveryCycle }> {
+): UseQueryResult<{ cycle: ApiRecoveryCycle | null }> {
   return useQuery({
     queryKey: ["recovery-cycle", options.token],
-    queryFn: () =>
-      requestJson<{ cycle: ApiRecoveryCycle }>("/api/v1/squads/me/cycle", { token: options.token }),
+    queryFn: async () => {
+      const response = await requestJsonAllowNotFound<{ cycle: ApiRecoveryCycle }>(
+        "/api/v1/squads/me/cycle",
+        { token: options.token },
+      );
+      return { cycle: response?.cycle ?? null };
+    },
     enabled: queryEnabled(options),
   });
 }
 
 export function useSquadHealth(
   options: QueryAuthOptions,
-): UseQueryResult<{ health: ApiSquadHealth }> {
+): UseQueryResult<{ health: ApiSquadHealth | null }> {
   return useQuery({
     queryKey: ["squad", "health", options.token],
-    queryFn: () =>
-      requestJson<{ health: ApiSquadHealth }>("/api/v1/squads/me/health", { token: options.token }),
+    queryFn: async () => {
+      const response = await requestJsonAllowNotFound<{ health: ApiSquadHealth }>(
+        "/api/v1/squads/me/health",
+        { token: options.token },
+      );
+      return { health: response?.health ?? null };
+    },
     enabled: queryEnabled(options),
   });
 }
 
 export function useSquadInsights(
   options: QueryAuthOptions,
-): UseQueryResult<{ insights: ApiSquadInsights }> {
+): UseQueryResult<{ insights: ApiSquadInsights | null }> {
   return useQuery({
     queryKey: ["squad", "insights", options.token],
-    queryFn: () =>
-      requestJson<{ insights: ApiSquadInsights }>("/api/v1/squads/me/insights", { token: options.token }),
+    queryFn: async () => {
+      const response = await requestJsonAllowNotFound<{ insights: ApiSquadInsights }>(
+        "/api/v1/squads/me/insights",
+        { token: options.token },
+      );
+      return { insights: response?.insights ?? null };
+    },
     enabled: queryEnabled(options),
   });
 }
@@ -346,34 +366,45 @@ export function useMemberContributions(
 ): UseQueryResult<{ members: ApiSquadMemberContribution[] }> {
   return useQuery({
     queryKey: ["squad", "contributions", options.token],
-    queryFn: () =>
-      requestJson<{ members: ApiSquadMemberContribution[] }>("/api/v1/squads/me/contributions", {
-        token: options.token,
-      }),
+    queryFn: async () => {
+      const response = await requestJsonAllowNotFound<{ members: ApiSquadMemberContribution[] }>(
+        "/api/v1/squads/me/contributions",
+        { token: options.token },
+      );
+      return { members: response?.members ?? [] };
+    },
     enabled: queryEnabled(options),
   });
 }
 
 export function useSquadMatchup(
   options: QueryAuthOptions,
-): UseQueryResult<{ matchup: ApiSquadMatchup }> {
+): UseQueryResult<{ matchup: ApiSquadMatchup | null }> {
   return useQuery({
     queryKey: ["squad", "matchup", options.token],
-    queryFn: () =>
-      requestJson<{ matchup: ApiSquadMatchup }>("/api/v1/squads/me/matchup", { token: options.token }),
+    queryFn: async () => {
+      const response = await requestJsonAllowNotFound<{ matchup: ApiSquadMatchup }>(
+        "/api/v1/squads/me/matchup",
+        { token: options.token },
+      );
+      return { matchup: response?.matchup ?? null };
+    },
     enabled: queryEnabled(options),
   });
 }
 
 export function useCrystallization(
   options: QueryAuthOptions,
-): UseQueryResult<{ crystallization: ApiCycleCrystallization }> {
+): UseQueryResult<{ crystallization: ApiCycleCrystallization | null }> {
   return useQuery({
     queryKey: ["squad", "crystallization", options.token],
-    queryFn: () =>
-      requestJson<{ crystallization: ApiCycleCrystallization }>("/api/v1/squads/me/crystallization", {
-        token: options.token,
-      }),
+    queryFn: async () => {
+      const response = await requestJsonAllowNotFound<{ crystallization: ApiCycleCrystallization }>(
+        "/api/v1/squads/me/crystallization",
+        { token: options.token },
+      );
+      return { crystallization: response?.crystallization ?? null };
+    },
     enabled: queryEnabled(options),
   });
 }
@@ -381,8 +412,12 @@ export function useCrystallization(
 export function useOnggis(options: QueryAuthOptions): UseQueryResult<{ onggis: ApiOnggi[] }> {
   return useQuery({
     queryKey: ["onggis", options.token],
-    queryFn: () =>
-      requestJson<{ onggis: ApiOnggi[] }>("/api/v1/squads/me/onggis", { token: options.token }),
+    queryFn: async () => {
+      const response = await requestJsonAllowNotFound<{ onggis: ApiOnggi[] }>("/api/v1/squads/me/onggis", {
+        token: options.token,
+      });
+      return { onggis: response?.onggis ?? [] };
+    },
     enabled: queryEnabled(options),
   });
 }
@@ -392,10 +427,13 @@ export function useChallenges(
 ): UseQueryResult<{ challenges: ApiChallenge[] }> {
   return useQuery({
     queryKey: ["squad", "challenges", options.token],
-    queryFn: () =>
-      requestJson<{ challenges: ApiChallenge[] }>("/api/v1/squads/me/challenges", {
-        token: options.token,
-      }),
+    queryFn: async () => {
+      const response = await requestJsonAllowNotFound<{ challenges: ApiChallenge[] }>(
+        "/api/v1/squads/me/challenges",
+        { token: options.token },
+      );
+      return { challenges: response?.challenges ?? [] };
+    },
     enabled: queryEnabled(options),
   });
 }
@@ -407,11 +445,13 @@ export function useImpactFeed(
   const offset = options.offset ?? 0;
   return useQuery({
     queryKey: ["impact-feed", options.token, limit, offset],
-    queryFn: () =>
-      requestJson<{ events: ApiImpactEvent[]; pagination: ApiPagination }>(
+    queryFn: async () => {
+      const response = await requestJsonAllowNotFound<{ events: ApiImpactEvent[]; pagination: ApiPagination }>(
         `/api/v1/squads/me/impact-feed?limit=${limit}&offset=${offset}`,
         { token: options.token },
-      ),
+      );
+      return response ?? { events: [], pagination: { limit, offset, total: 0 } };
+    },
     enabled: queryEnabled(options),
   });
 }
