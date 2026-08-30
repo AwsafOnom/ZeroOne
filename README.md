@@ -14,10 +14,10 @@ I built ZeroOne because I wanted this product to exist — auth, onboarding, squ
 
 <p align="center">
   <a href="https://zeroone.vercel.app">
-    <img src="https://img.shields.io/badge/LIVE%20SITE-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Site">
+    <img src="https://img.shields.io/badge/LIVE%20SITE-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Site">
   </a>
 </p>
-click **Explore as demo user** (no signup required).
+Click **Explore as demo user** (no signup required).
 
 ---
 
