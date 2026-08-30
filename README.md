@@ -2,8 +2,6 @@
 
 # ZeroOne
 
-**A collective recovery platform where eight people with different health conditions share a squad and grow a shared artifact — the Onggi — through daily activities.**
-
 </div>
 
 A collective recovery platform where eight people with **different** health conditions share a squad and grow a shared artifact — the Onggi — through daily activities.
