@@ -12,7 +12,12 @@ Most recovery apps optimize for one condition and one user. ZeroOne deliberately
 
 I built ZeroOne because I wanted this product to exist — auth, onboarding, squad mechanics, journal, assistant, and realtime updates wired end to end. Several nav items are still roadmap stubs with design previews.
 
-**Live site:** [zeroone.vercel.app](https://zeroone.vercel.app) — on the login page, click **Explore as demo user** (no signup required).
+<p align="center">
+  <a href="https://zeroone.vercel.app">
+    <img src="https://img.shields.io/badge/LIVE%20SITE-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Site">
+  </a>
+</p>
+click **Explore as demo user** (no signup required).
 
 ---
 
