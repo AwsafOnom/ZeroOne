@@ -1,4 +1,4 @@
-<img width="1920" height="1080" alt="28" src="https://github.com/user-attachments/assets/26569269-fe1a-401f-ba26-57e9a29acb24" /># ZeroOne
+
 
 A collective recovery platform where eight people with **different** health conditions share a squad and grow a shared artifact — the Onggi — through daily activities.
 
@@ -122,6 +122,7 @@ The full deck of presentation for better understanding.
 ![](slides/slide-23.jpg) <img width="1920" height="1080" alt="28" src="https://github.com/user-attachments/assets/9c42ac97-bd81-4657-9a72-170aef81914e" />
 
 </details>
+
 ---
 
 ## Architecture
